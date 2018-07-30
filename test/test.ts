@@ -3,15 +3,15 @@ import { expect, request } from 'chai'
 import express from 'express'
 import { createSandbox } from 'sinon'
 
-import { slackSignedRequestHandler } from '../src'
+import * as slackSecretMiddleware from '../src'
 
 describe('slackSignedRequestHandler', () => {
 
   const sandbox = createSandbox()
-  const signatureMismatchMiddleware = sandbox.stub().callsFake((_req, _res, next) => next())
+  const signatureMismatchMiddlewareSpy = sandbox.spy(slackSecretMiddleware, 'defaultSignatureMismatchMiddleware')
 
   const app = express()
-  app.post('/', slackSignedRequestHandler('SECRET', signatureMismatchMiddleware))
+  app.post('/', slackSecretMiddleware.slackSignedRequestHandler('SECRET'))
   const server = app.listen(8080)
 
   after('close server', () => {
@@ -31,7 +31,7 @@ describe('slackSignedRequestHandler', () => {
         foo: 'bar',
       })
       .end(() => {
-        expect(signatureMismatchMiddleware.called).to.be.false
+        expect(signatureMismatchMiddlewareSpy.called).to.be.false
         done()
       })
   })
@@ -44,8 +44,9 @@ describe('slackSignedRequestHandler', () => {
       .send({
         foo: 'bar',
       })
-      .end(() => {
-        expect(signatureMismatchMiddleware.called).to.be.true
+      .end((_err, res) => {
+        expect(signatureMismatchMiddlewareSpy.called).to.be.true
+        expect(res.status).to.equal(200)
         done()
       })
   })

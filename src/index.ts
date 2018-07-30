@@ -19,7 +19,7 @@ interface RequestRawBody extends Request {
  * Default middleware executed when the Slack signing check fails.
  * It just returns 200, so that we don't give a hint to the requester that we actually spotted the error.
  */
-const defaultSignatureMismatchMiddleware: RequestHandler = (_req, res, _next) => {
+export const defaultSignatureMismatchMiddleware: RequestHandler = (_req, res, _next) => {
   // tslint:disable-next-line:no-console
   console.error('Slack signature mismatch')
   res.sendStatus(200)
