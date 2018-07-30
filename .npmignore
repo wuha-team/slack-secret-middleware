@@ -1,2 +1,5 @@
+.nyc_output/
 src/
 test/
+.travis.yml
+*.json
