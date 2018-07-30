@@ -6,7 +6,7 @@
   "types": "dist/src/index.d.ts",
   "scripts": {
     "build": "tsc -p tsconfig.release.json",
-    "prepublish": "npm run build",
+    "prepublishOnly": "npm run build",
     "lint": "tslint -c tslint.json -p tsconfig.json",
     "test": "nyc mocha",
     "coverage": "nyc report --reporter=text-lcov | coveralls"
