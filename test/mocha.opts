@@ -1,0 +1,4 @@
+-r ts-node/register
+-r test/_chai.ts
+--recursive
+test/**/*.{ts,tsx}
