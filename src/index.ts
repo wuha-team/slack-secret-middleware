@@ -3,7 +3,6 @@
  * @author Wuha
  */
 
-import * as bodyParser from 'body-parser'
 import { compose } from 'compose-middleware'
 import { createHmac } from 'crypto'
 import { NextFunction, Request, RequestHandler, Response } from 'express'
@@ -12,7 +11,24 @@ import { NextFunction, Request, RequestHandler, Response } from 'express'
  * Structure of an Express request in which we add the raw request buffer.
  */
 interface RequestRawBody extends Request {
-  rawBody: Buffer
+  rawBody: string
+}
+
+/**
+ * Middleware retrieving the raw body of the request.
+ */
+const rawBodyMiddleware = (): RequestHandler => (req, _res, next) => {
+  let rawBody = ''
+  req.setEncoding('utf8')
+
+  req.on('data', (chunk) => {
+    rawBody += chunk
+  })
+
+  req.on('end', () => {
+    (<RequestRawBody> req).rawBody = rawBody
+    next()
+  })
 }
 
 /**
@@ -37,11 +53,7 @@ export const slackSignedRequestHandler = (
   version: string = 'v0',
 ): RequestHandler => {
   return compose(
-    bodyParser.json({
-      verify: (req, _res, buf) => {
-        (<RequestRawBody> req).rawBody = buf
-      },
-    }),
+    rawBodyMiddleware(),
     (req: Request, res: Response, next: NextFunction) => {
       const rawBody = (<RequestRawBody> req).rawBody
       const timestamp = req.headers['x-slack-request-timestamp']

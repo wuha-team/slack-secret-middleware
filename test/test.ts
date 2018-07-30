@@ -22,7 +22,7 @@ describe('slackSignedRequestHandler', () => {
     sandbox.restore()
   })
 
-  it('should not call the signatureMismatchMiddleware when the signature check suceeds', (done) => {
+  it('should not call the signatureMismatchMiddleware when the signature check succeeds', (done) => {
     request(server)
       .post('/')
       .set('X-Slack-Request-Timestamp', '1532955167')
