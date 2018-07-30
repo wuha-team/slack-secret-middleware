@@ -1,4 +1,6 @@
 import * as chai from 'chai'
-import { default as chaiAsPromised } from 'chai-as-promised'
 
-chai.use(chaiAsPromised)
+// tslint:disable-next-line:no-require-imports no-var-requires
+const chaiHttp = require('chai-http')
+
+chai.use(chaiHttp)
