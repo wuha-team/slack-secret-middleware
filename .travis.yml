@@ -1,21 +1,13 @@
 language: node_js
 
-node_js:
-- '8.9'
-- node
-
-cache:
-  directories:
-  - node_modules
+before_script:
+- npm run build
 
 after_success:
 - npm run coverage
 
 deploy:
-  provider: script
-  script:
-  - npm run build
-  - npm publish
+  provider: npm
   on:
     tags: true
   api_key:
