@@ -1,6 +1,6 @@
 {
   "name": "slack-secret-middleware",
-  "version": "1.0.12",
+  "version": "1.0.13",
   "description": "Express middleware to verify Slack Signed Secret requests.",
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",
