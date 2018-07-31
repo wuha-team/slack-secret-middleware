@@ -25,6 +25,9 @@
       "test/",
       "**/*.d.ts"
     ],
+    "require": [
+      "ts-node/register"
+    ],
     "all": true
   },
   "author": "Wuha",
@@ -32,6 +35,7 @@
   "devDependencies": {
     "@types/chai": "^4.1.3",
     "@types/chai-http": "^3.0.5",
+    "@types/content-type": "^1.1.2",
     "@types/express": "^4.16.0",
     "@types/mocha": "^5.2.0",
     "@types/node": "^10.5.1",
@@ -49,6 +53,8 @@
     "typescript": "^2.9.2"
   },
   "dependencies": {
-    "compose-middleware": "^5.0.0"
+    "compose-middleware": "^5.0.0",
+    "content-type": "^1.0.4",
+    "raw-body": "^2.3.3"
   }
 }

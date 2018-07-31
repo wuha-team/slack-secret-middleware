@@ -3,33 +3,10 @@
  * @author Wuha
  */
 
-import { compose } from 'compose-middleware'
+import * as contentType from 'content-type'
 import { createHmac } from 'crypto'
 import { NextFunction, Request, RequestHandler, Response } from 'express'
-
-/**
- * Structure of an Express request in which we add the raw request buffer.
- */
-interface RequestRawBody extends Request {
-  rawBody: string
-}
-
-/**
- * Middleware retrieving the raw body of the request.
- */
-const rawBodyMiddleware = (): RequestHandler => (req, _res, next) => {
-  let rawBody = ''
-  req.setEncoding('utf8')
-
-  req.on('data', (chunk) => {
-    rawBody += chunk
-  })
-
-  req.on('end', () => {
-    (<RequestRawBody> req).rawBody = rawBody
-    next()
-  })
-}
+import rawBody from 'raw-body'
 
 /**
  * Default middleware executed when the Slack signing check fails.
@@ -52,20 +29,24 @@ export const slackSignedRequestHandler = (
   signatureMismatchMiddleware: RequestHandler = defaultSignatureMismatchMiddleware,
   version: string = 'v0',
 ): RequestHandler => {
-  return compose(
-    rawBodyMiddleware(),
-    (req: Request, res: Response, next: NextFunction) => {
-      const rawBody = (<RequestRawBody> req).rawBody
-      const timestamp = req.headers['x-slack-request-timestamp']
+  return async (req: Request, res: Response, next: NextFunction) => {
+    const raw = await rawBody(
+      req,
+      {
+        length: req.headers['content-length'],
+        encoding: contentType.parse(req).parameters.charset,
+      },
+    )
+    const timestamp = req.headers['x-slack-request-timestamp']
 
-      const rawSignature = `${version}:${timestamp}:${rawBody}`
-      const signature = `${version}=${createHmac('sha256', secret).update(rawSignature).digest('hex')}`
+    const rawSignature = `${version}:${timestamp}:${raw}`
+    const signature = `${version}=${createHmac('sha256', secret).update(rawSignature).digest('hex')}`
 
-      if (signature !== req.headers['x-slack-signature']) {
-        signatureMismatchMiddleware(req, res, next)
-      } else {
-        next()
-      }
-    },
-  )
+    if (signature !== req.headers['x-slack-signature']) {
+      signatureMismatchMiddleware(req, res, next)
+    } else {
+      req.body = JSON.parse(raw)
+      next()
+    }
+  }
 }

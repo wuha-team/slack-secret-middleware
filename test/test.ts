@@ -1,4 +1,5 @@
 /* tslint:disable:no-unused-expression */
+//import * as bodyParser from 'body-parser'
 import { expect, request } from 'chai'
 import express from 'express'
 import { createSandbox } from 'sinon'
@@ -8,21 +9,27 @@ import * as slackSecretMiddleware from '../src'
 describe('slackSignedRequestHandler', () => {
 
   const sandbox = createSandbox()
+  const successMiddlewareStub = sandbox.stub().callsFake(
+    (_req: express.Request, _res: express.Response, next: express.NextFunction) => {
+      next()
+    },
+  )
   const signatureMismatchMiddlewareSpy = sandbox.spy(slackSecretMiddleware, 'defaultSignatureMismatchMiddleware')
 
   const app = express()
-  app.post('/', slackSecretMiddleware.slackSignedRequestHandler('SECRET'))
+  app.post('/', slackSecretMiddleware.slackSignedRequestHandler('SECRET'), successMiddlewareStub)
   const server = app.listen(8080)
 
   after('close server', () => {
     server.close()
   })
 
-  afterEach('restoreSandbox', () => {
-    sandbox.restore()
+  afterEach('reset spy and stub', () => {
+    successMiddlewareStub.resetHistory()
+    signatureMismatchMiddlewareSpy.resetHistory()
   })
 
-  it('should not call the signatureMismatchMiddleware when the signature check succeeds', (done) => {
+  it('should call the successMidleware with the parsed JSON when the signature check succeeds', (done) => {
     request(server)
       .post('/')
       .set('X-Slack-Request-Timestamp', '1532955167')
@@ -31,6 +38,9 @@ describe('slackSignedRequestHandler', () => {
         foo: 'bar',
       })
       .end(() => {
+        expect(successMiddlewareStub.called).to.be.true
+        expect(successMiddlewareStub.args[0][0].body).to.deep.equal({ foo: 'bar' })
+
         expect(signatureMismatchMiddlewareSpy.called).to.be.false
         done()
       })
@@ -45,6 +55,7 @@ describe('slackSignedRequestHandler', () => {
         foo: 'bar',
       })
       .end((_err, res) => {
+        expect(successMiddlewareStub.called).to.be.false
         expect(signatureMismatchMiddlewareSpy.called).to.be.true
         expect(res.status).to.equal(200)
         done()

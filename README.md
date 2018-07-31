@@ -5,6 +5,49 @@
 [![Build Status][travis-image]][travis-url]
 [![Test Coverage][coveralls-image]][coveralls-url]
 
+Express middleware to check the authenticity of incoming [Slack signed requests](https://api.slack.com/docs/verifying-requests-from-slack), as part of the [Events API](https://api.slack.com/events-api).
+
+## Installation
+
+```bash
+npm i slack-secret-middleware
+```
+
+## Usage
+
+Find the **Signing Secret** of your Slack app in your app settings.
+
+Add the middleware to the route receiving the Slack events:
+
+```ts
+import * as bodyParser from 'body-parser'
+import { slackSignedRequestHandler } from 'slack-secret-middleware'
+
+app.post(
+  '/events',
+  slackSignedRequestHandler('SLACK_SIGNING_SECRET'),
+  // The request is authentic, do your own logic
+  (req, res, next) => {
+    // `req.body` contains the parsed JSON of the event
+    res.status(200).json(req.body)
+  }
+)
+```
+
+### Custom signature mismatch middleware
+
+By default, when the signature check fails, it just returns a response with status 200. If you want to do custom logic when this happens, you can provide your own middleware as a second parameter of the `slackSignedRequestHandler`:
+
+```ts
+slackSignedRequestHandler(
+  'SLACK_SIGNING_SECRET',
+  (req, res, next) => {
+    console.error('Wrong signature')
+    res.sendStatus(500)
+  }
+)
+```
+
 ## License
 
 [MIT](LICENSE)
