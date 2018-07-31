@@ -20,7 +20,6 @@ Find the **Signing Secret** of your Slack app in your app settings.
 Add the middleware to the route receiving the Slack events:
 
 ```ts
-import * as bodyParser from 'body-parser'
 import { slackSignedRequestHandler } from 'slack-secret-middleware'
 
 app.post(
@@ -42,7 +41,7 @@ By default, when the signature check fails, it just returns a response with stat
 slackSignedRequestHandler(
   'SLACK_SIGNING_SECRET',
   (req, res, next) => {
-    console.error('Wrong signature')
+    console.error('Wrong signature', { body: req.body, headers: req.headers })
     res.sendStatus(500)
   }
 )
