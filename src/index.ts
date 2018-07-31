@@ -6,6 +6,7 @@
 import * as contentType from 'content-type'
 import { createHmac } from 'crypto'
 import { NextFunction, Request, RequestHandler, Response } from 'express'
+import * as querystring from 'querystring'
 import rawBody from 'raw-body'
 
 /**
@@ -13,8 +14,6 @@ import rawBody from 'raw-body'
  * It just returns 200, so that we don't give a hint to the requester that we actually spotted the error.
  */
 export const defaultSignatureMismatchMiddleware: RequestHandler = (_req, res, _next) => {
-  // tslint:disable-next-line:no-console
-  console.error('Slack signature mismatch')
   res.sendStatus(200)
 }
 
@@ -30,11 +29,12 @@ export const slackSignedRequestHandler = (
   version: string = 'v0',
 ): RequestHandler => {
   return async (req: Request, res: Response, next: NextFunction) => {
+    const parsedContentType = contentType.parse(req)
     const raw = await rawBody(
       req,
       {
         length: req.headers['content-length'],
-        encoding: contentType.parse(req).parameters.charset,
+        encoding: parsedContentType.parameters.charset,
       },
     )
     const timestamp = req.headers['x-slack-request-timestamp']
@@ -42,7 +42,13 @@ export const slackSignedRequestHandler = (
     const rawSignature = `${version}:${timestamp}:${raw}`
     const signature = `${version}=${createHmac('sha256', secret).update(rawSignature).digest('hex')}`
 
-    req.body = JSON.parse(raw)
+    // Parse request body for next middlewares
+    if (parsedContentType.type === 'application/json') {
+      req.body = JSON.parse(raw)
+    }
+    if (parsedContentType.type === 'application/x-www-form-urlencoded') {
+      req.body = querystring.parse(raw.toString())
+    }
 
     if (signature !== req.headers['x-slack-signature']) {
       signatureMismatchMiddleware(req, res, next)
