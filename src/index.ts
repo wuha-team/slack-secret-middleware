@@ -42,10 +42,11 @@ export const slackSignedRequestHandler = (
     const rawSignature = `${version}:${timestamp}:${raw}`
     const signature = `${version}=${createHmac('sha256', secret).update(rawSignature).digest('hex')}`
 
+    req.body = JSON.parse(raw)
+
     if (signature !== req.headers['x-slack-signature']) {
       signatureMismatchMiddleware(req, res, next)
     } else {
-      req.body = JSON.parse(raw)
       next()
     }
   }

@@ -46,7 +46,7 @@ describe('slackSignedRequestHandler', () => {
       })
   })
 
-  it('should call the signatureMismatchMiddleware when the signature check fails', (done) => {
+  it('should call the signatureMismatchMiddleware with the parsed JSON when the signature check fails', (done) => {
     request(server)
       .post('/')
       .set('X-Slack-Request-Timestamp', '1532955167')
@@ -56,7 +56,10 @@ describe('slackSignedRequestHandler', () => {
       })
       .end((_err, res) => {
         expect(successMiddlewareStub.called).to.be.false
+
         expect(signatureMismatchMiddlewareSpy.called).to.be.true
+        expect(signatureMismatchMiddlewareSpy.args[0][0].body).to.deep.equal({ foo: 'bar' })
+
         expect(res.status).to.equal(200)
         done()
       })
