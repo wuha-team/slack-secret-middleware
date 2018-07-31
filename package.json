@@ -53,7 +53,6 @@
     "typescript": "^2.9.2"
   },
   "dependencies": {
-    "compose-middleware": "^5.0.0",
     "content-type": "^1.0.4",
     "raw-body": "^2.3.3"
   }
