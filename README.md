@@ -1,6 +1,6 @@
-# Slack Secret Middleware
+# DEPRECATED: Use the official [Slack Events API adapter](https://github.com/slackapi/node-slack-events-api) library.
 
-> DEPRECATED: Use the official [Slack Events API adapter](https://github.com/slackapi/node-slack-events-api) library.
+# Slack Secret Middleware
 
 [![NPM Version][npm-image]][npm-url]
 [![NPM Downloads][downloads-image]][downloads-url]
